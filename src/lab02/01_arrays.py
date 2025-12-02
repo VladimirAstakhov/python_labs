@@ -1,15 +1,21 @@
 def min_max(nums: list[float | int]):
-    if (len(nums) == 0):
+    if len(nums) == 0:
         return "ValueError"
     return (max(nums), min(nums))
+
+
 def unique_sorted(nums: list[float | int]):
     return list(set(nums))
+
+
 def flatten(mat: list[list | tuple]):
     for each_list in mat:
         if (not isinstance(each_list, list)) and (not isinstance(each_list, tuple)):
             return "ValueError"
 
     return [element for each_list in mat for element in each_list]
+
+
 print("min_max tests")
 test_min_max_1 = [3, -1, 5, 5, 0]
 test_min_max_2 = [42]

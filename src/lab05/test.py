@@ -8,11 +8,11 @@ if __name__ == "__main__":
     INPUT_JSON = BASE / "data" / "samples" / "people.json"
     OUTPUT_CSV = BASE / "data" / "out" / "people_from_json.csv"
 
-    INPUT_CSV = BASE / "data"  / "samples" / "people.csv"
-    OUTPUT_JSON = BASE / "data"  / "out" / "people_from_csv.json"
+    INPUT_CSV = BASE / "data" / "samples" / "people.csv"
+    OUTPUT_JSON = BASE / "data" / "out" / "people_from_csv.json"
 
-    INPUT_CSV_2 = BASE / "data"  / "samples" / "cities.csv"
-    OUTPUT_XLSX = BASE / "data"  / "out" / "people.xlsx"
+    INPUT_CSV_2 = BASE / "data" / "samples" / "cities.csv"
+    OUTPUT_XLSX = BASE / "data" / "out" / "people.xlsx"
 
     json_to_csv(INPUT_JSON, OUTPUT_CSV)
     csv_to_json(INPUT_CSV, OUTPUT_JSON)

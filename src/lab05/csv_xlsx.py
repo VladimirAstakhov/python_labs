@@ -1,7 +1,7 @@
-
 from openpyxl import Workbook
 import csv
 from pathlib import Path
+
 
 def csv_to_xlsx(csv_path, xlsx_path):
     csv_path = Path(csv_path)
@@ -32,8 +32,7 @@ def csv_to_xlsx(csv_path, xlsx_path):
                 widths[i] = max(widths.get(i, 8), length)
 
     for i, w in widths.items():
-        col_letter = ws.cell(row=1, column=i+1).column_letter
+        col_letter = ws.cell(row=1, column=i + 1).column_letter
         ws.column_dimensions[col_letter].width = w + 2
 
     wb.save(xlsx_path)
-

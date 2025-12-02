@@ -1,7 +1,7 @@
-
 import json
 import csv
 from pathlib import Path
+
 
 def json_to_csv(json_path, csv_path):
     json_path = Path(json_path)
@@ -26,11 +26,13 @@ def json_to_csv(json_path, csv_path):
         raise ValueError("JSON должен содержать список объектов")
 
     fieldnames = list(data[0].keys())
-
+    for item in data:
+        row = {key: item.get(key, "") for key in fieldnames}
     with csv_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(data)
+
 
 def csv_to_json(csv_path, json_path):
     csv_path = Path(csv_path)
