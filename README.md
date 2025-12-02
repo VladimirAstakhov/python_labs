@@ -1,4 +1,4 @@
-# python_labs
+<img width="965" height="174" alt="Задание B(консоль)" src="https://github.com/user-attachments/assets/846ee38e-36b6-4251-875a-74e3700a42a7" /># python_labs
 
 # Лабораторная работа №1 по Python
 
@@ -245,5 +245,232 @@ print(format_record(test_4))
 
 ```
 <img width="456" height="222" alt="image_03" src="https://github.com/user-attachments/assets/d5bbfde2-005a-4346-bc39-9a2101ff7274" />
+
+
+# Лабораторная работа №3 по Python
+
+## Задание A — src/lib/text.py
+
+## 1. код normalize:
+```python
+def normalize(text: str, *, casefold: bool = True, yo2e: bool = True) -> str:
+    if not isinstance(text, str):
+        raise TypeError
+    if not text:
+        return ""
+    if casefold:
+        text = text.casefold()
+    if yo2e:
+        text = text.replace('ё', 'е')
+        text = text.replace('Ё', 'Е')
+    text = text.replace("\t", " ")
+    text = text.replace("\r", " ")
+    text = text.replace("\n", " ")
+    text = text.strip()
+    return text
+
+```
+
+## 2. код tokenize:
+```python
+def tokenize(text: str) -> list[str]:
+    if not isinstance(text, str):
+        raise TypeError
+    if not text:
+        return []
+    word_pattern = r"\w+(?:-\w+)*"
+    return re.findall(word_pattern, text)
+
+```
+
+## 3. код count_freq:
+```python
+def count_freq(tokens: list[str]) -> dict[str, int]:
+    if not isinstance(tokens, list):
+        raise TypeError
+    for token in tokens:
+        if not isinstance(token, str):
+            raise TypeError
+    freq_dict = {}
+    for token in tokens:
+        if token in freq_dict:
+            freq_dict[token] += 1
+        else:
+            freq_dict[token] = 1
+
+    return freq_dict
+```
+
+## 4. код top_n:
+```python
+def top_n(freq: dict[str, int], n: int = 5) -> list[tuple[str, int]]:
+    if not isinstance(freq, dict):
+        raise TypeError
+    for key in freq:
+        if not isinstance(key, str):
+            raise TypeError
+        if not isinstance(freq[key], int):
+            raise TypeError
+    sorted_dict = sorted(freq.items(), key = lambda item: (-item[1], item[0]))
+    return sorted_dict[:n]
+
+```
+## Программа тестирования (text_stats.py):
+```python
+#тесты normalize
+print(normalize("ПрИвЕт\nМИр\t"))
+print(normalize("ёжик, Ёлка"))
+print(normalize("Hello\r\nWorld"))
+print(normalize("  двойные   пробелы  "))
+
+#тесты tokenize
+print(tokenize("привет мир"))
+print(tokenize("hello,world!!!"))
+print(tokenize("по-настоящему круто"))
+print(tokenize("2025 год"))
+print(tokenize("emoji 😀 не слово"))
+
+#тесты count_freq + top_n
+tokens_1 = ["a","b","a","c","b","a"]
+freq_1 = count_freq(tokens_1)
+print(freq_1, top_n(freq_1, 2))
+tokens_2 = ["bb","aa","bb","aa","cc"]
+freq_2 = count_freq(tokens_2)
+print(count_freq(tokens_2))
+print(freq_2, top_n(freq_2, 2))
+```
+## Результат:
+
+![Задание A](https://github.com/user-attachments/assets/b144fad0-3caf-4a8f-92a4-d7ee473567b8)
+
+## Задание B — src/text_stats.py
+
+## код:
+```python
+text = input("Введите строку:")
+tokens = tokenize(text)
+freq_dict = count_freq(tokens)
+print(f"Всего слов: {len(tokens)}")
+print(f"Уникальных слов: {len(freq_dict)}")
+print("Топ-5:")
+top_5 = top_n(freq_dict)
+for pair in top_5:
+    print(f"{pair[0]}:{pair[1]}")
+```
+## тест:
+
+<img width="454" height="171" alt="Задание B" src="https://github.com/user-attachments/assets/3b174d5d-7b11-45bb-b5a8-8b7f9d3f0c96" />
+
+# Лабораторная работа №4 по Python
+
+## Задание A - src/lab04/io_txt_csv.py
+
+## №1 код read_text:
+```python
+def read_text(path: str | Path, encoding: str = "utf-8") -> str:
+
+
+    p = Path(path)
+    return p.read_text(encoding=encoding)
+```
+
+## №2 код write_csv:
+```python
+def write_csv(rows: Iterable[Sequence], path: str | Path,
+              header: tuple[str, ...] | None = None) -> None:
+
+    rows_list = list(rows)
+    if rows_list:
+        expected = len(rows_list[0])
+        for r in rows_list:
+            if len(r) != expected:
+                raise ValueError("Все строки CSV должны иметь одинаковую длину")
+
+    p = Path(path)
+
+    with p.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        if header is not None:
+            writer.writerow(header)
+        for row in rows_list:
+            writer.writerow(row)
+```
+
+## Задание B - src/lab04/text_report.py
+
+## Дополнительные функции для обработки текста:
+
+```python
+def frequencies_from_text(text: str) -> dict[str, int]:
+    tokens = tokenize(normalize(text))
+    return Counter(tokens)
+
+def sorted_word_counts(freq: dict[str, int]) -> list[tuple[str, int]]:
+    return sorted(freq.items(), key=lambda kv: (-kv[1], kv[0]))
+```
+## №2 основной код в src/lab04/text_report.py:
+
+```python
+
+if __name__ == "__main__":
+    from collections import Counter
+    from pathlib import Path
+    import sys
+    from src.lib.text import normalize, tokenize, top_n
+    BASE = Path(__file__).resolve().parents[2]
+    from src.lab04.io_txt_csv import read_text, write_csv, frequencies_from_text,sorted_word_counts
+
+
+    INPUT = BASE / "data" / "lab04" / "input.txt"
+    OUTPUT = BASE / "data" / "lab04" / "report.csv"
+    
+    text = read_text(INPUT, "utf-8")
+
+
+    normalized = normalize(text)
+    tokens = tokenize(normalized)
+
+    freq = Counter(tokens)
+
+    sorted_rows = sorted_word_counts(frequencies_from_text(text))
+
+    write_csv(sorted_rows, OUTPUT, header=("word", "count"))
+
+    print("Готово. Отчёт сохранён в:", OUTPUT)
+    print(f"Всего слов: {len(tokenize(normalize(text)))}")
+    print(f"Уникальных слов: {len(frequencies_from_text(text))}")
+    if len(sorted_rows) != 0:
+        print("Топ-5:")
+    for i in range (min(5, len(sorted_rows))):
+        print(f"{sorted_rows[i][0]}:{sorted_rows[i][1]}")
+```
+
+## Тесты:
+
+## A (Обычный файл):
+
+## Входные данные:
+<img width="455" height="317" alt="Задание A(входные данные)" src="https://github.com/user-attachments/assets/b4ae112b-57da-47f8-9e20-fc5d00bf5233" />
+
+
+## Результат:
+<img width="401" height="189" alt="Задание A(результат)" src="https://github.com/user-attachments/assets/36c8588a-e7a0-4a79-8f8c-2131373ed43f" />
+
+## B (Пустой файл):
+
+## Результат:
+<img width="609" height="196" alt="Задание B(результат)" src="https://github.com/user-attachments/assets/0da6f54d-2672-4f4d-99cb-34cb273a6e00" />
+
+## Консоль:
+<img width="965" height="174" alt="Задание B(консоль)" src="https://github.com/user-attachments/assets/ba1be983-b2b5-4379-91f3-538368c41cc4" />
+
+## C (Кодировка cp1251):
+
+## Входные данные:
+<img width="465" height="294" alt="Задание C(входные данные)" src="https://github.com/user-attachments/assets/59dc6dd4-ce1b-47bd-903a-74953525c3b3" />
+
+## Результат:
+<img width="669" height="293" alt="Задание C(результат)" src="https://github.com/user-attachments/assets/20a0248e-8b66-4280-b2ab-20594835ee33" />
+
 
 
