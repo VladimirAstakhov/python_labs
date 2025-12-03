@@ -482,7 +482,7 @@ if __name__ == "__main__":
 
 ## Задание A — JSON ↔ CSV
 
-# функция json_to_csv
+## функция json_to_csv
 
 ```
 Преобразует JSON-файл в CSV.
@@ -522,7 +522,7 @@ def json_to_csv(json_path, csv_path):
         writer.writerows(data)
 ```
 
-# функция csv_to_json
+## функция csv_to_json
 
 ```
     Преобразует CSV в JSON (список словарей).
@@ -626,16 +626,17 @@ if __name__ == "__main__":
     csv_to_xlsx(INPUT_CSV_2, OUTPUT_XLSX)
 ```
 
-# конвертация json в csv:
+## конвертация json в csv:
 <img width="366" height="223" alt="image" src="https://github.com/user-attachments/assets/1dc2c765-53cd-4280-adb1-c67b5305c571" />
 
-# конвертация csv в json:
+## конвертация csv в json:
 <img width="507" height="819" alt="image" src="https://github.com/user-attachments/assets/c3f79b73-b0e2-4d16-a5de-a022430c3251" />
 
-# конвертация csv в xlsx:
+## конвертация csv в xlsx:
 <img width="445" height="267" alt="image" src="https://github.com/user-attachments/assets/945e1d02-184e-46b6-83fe-ae8be769b790" />
 
 
+# Лабораторная работа №6 по Python
 
 
 
