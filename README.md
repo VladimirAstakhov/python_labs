@@ -638,5 +638,88 @@ if __name__ == "__main__":
 
 # Лабораторная работа №6 по Python
 
+## команда cat
 
+```
+Осуществляет построчный вывод файла
+Подкоманда/ флаг -n - означает построчный, пронумерованный вывод строк
+
+```
+## тесты:
+
+## help
+<img width="931" height="263" alt="cat_help" src="https://github.com/user-attachments/assets/f2a2c992-dadc-452f-bae7-6c407c72db00" />
+
+## работа команды с people.csv из data/samples
+<img width="1196" height="234" alt="cat_csv" src="https://github.com/user-attachments/assets/b36a2674-053c-46f8-b4c1-2f1b95376859" />
+<img width="1304" height="236" alt="cat_csv_-n" src="https://github.com/user-attachments/assets/136e276b-366c-4133-903e-5459b6b49958" />
+
+## команда stats
+
+```
+Анализирует частоту слов в текстовом файле и выводит топ-N наиболее часто встречающихся слов
+Аргумент --top N - определяет количество выводимых слов (по умолчанию 5)
+
+```
+## тесты:
+
+## help
+<img width="953" height="260" alt="stats_help" src="https://github.com/user-attachments/assets/2907c55d-dca2-4c0e-85e3-24d01327244d" />
+
+## работа команды с people.csv из data/samples (для args.top = 5 - значение по умолчанию и args.top = 3)
+
+<img width="1187" height="212" alt="stats_csv" src="https://github.com/user-attachments/assets/5b4b09eb-dc8f-4b81-9db9-d56b79e4b941" />
+<img width="1372" height="145" alt="stats_csv_top3" src="https://github.com/user-attachments/assets/9d15d0cb-a21b-4fb5-8584-908d94b9fa97" />
+
+## команды конвертирующие файлы json2csv, csv2json, csv2xlsx
+## json2csv
+```
+Конвертирует данные из формата JSON в формат CSV
+Аргументы: --in (входной JSON файл), --out (выходной CSV файл)
+
+```
+## команда csv2json
+
+```
+Конвертирует данные из формата CSV в формат JSON
+Аргументы: --in (входной CSV файл), --out (выходной JSON файл)
+
+```
+## команда csv2xlsx
+
+```
+Конвертирует данные из формата CSV в формат XLSX (Excel)
+Аргументы: --in (входной CSV файл), --out (выходной XLSX файл)
+Автоматически настраивает ширину столбцов по содержимому
+```
+## help
+<img width="663" height="770" alt="people_from_csv_to_json" src="https://github.com/user-attachments/assets/4dd5aef4-dac5-4cd6-9cd3-87c3f39166b1" />
+
+<img width="825" height="326" alt="people_from_json_to_csv" src="https://github.com/user-attachments/assets/2ec4f06f-ff86-43bf-b40e-72ef1f305ed9" />
+
+<img width="333" height="151" alt="people_xlsx" src="https://github.com/user-attachments/assets/40201e02-f681-440c-adea-4a9c5e564b45" />
+
+## Тесты этих подкоманд дают аналогичные результаты что и в лабораторной 5, команды:
+```
+JSON → CSV
+python -m src.lab06.cli_convert json2csv --in data/samples/people.json --out data/out/people.csv
+
+CSV → JSON
+python -m src.lab06.cli_convert csv2json --in data/samples/people.csv --out data/out/people.json
+
+CSV → XLSX
+python -m src.lab06.cli_convert csv2xlsx --in data/samples/people.csv --out data/out/people.xlsx
+```
+## общие help, для cli_convert и cli_text
+
+```
+python -m src.lab06.cli_text --help
+```
+<img width="979" height="455" alt="image" src="https://github.com/user-attachments/assets/3947ae5a-68b9-4be7-9e8b-d4a5a3a9a096" />
+
+```
+python -m src.lab06.cli_convert --help
+```
+
+<img width="1061" height="397" alt="image" src="https://github.com/user-attachments/assets/44079af8-bc33-4ad6-8f1a-a36000d169d2" />
 
