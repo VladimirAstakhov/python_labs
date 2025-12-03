@@ -1,4 +1,3 @@
-<img width="965" height="174" alt="Задание B(консоль)" src="https://github.com/user-attachments/assets/846ee38e-36b6-4251-875a-74e3700a42a7" /># python_labs
 
 # Лабораторная работа №1 по Python
 
@@ -344,10 +343,11 @@ print(freq_2, top_n(freq_2, 2))
 ![Задание A](https://github.com/user-attachments/assets/b144fad0-3caf-4a8f-92a4-d7ee473567b8)
 
 ## Задание B — src/text_stats.py
-
+# Ввод текста происходит до 
 ## код:
 ```python
-text = input("Введите строку:")
+print("Введите текст:")
+text = str(sys.stdin.readlines())
 tokens = tokenize(text)
 freq_dict = count_freq(tokens)
 print(f"Всего слов: {len(tokens)}")
@@ -409,7 +409,7 @@ def sorted_word_counts(freq: dict[str, int]) -> list[tuple[str, int]]:
     return sorted(freq.items(), key=lambda kv: (-kv[1], kv[0]))
 ```
 ## №2 основной код в src/lab04/text_report.py:
-
+## Путь к файлу задается по схеме: обращаемся к текущему файлу -> поднимаемся в родительскую директорию (python_labs) -> спускаемся до файлов, в которые загружаем input и output. 
 ```python
 
 if __name__ == "__main__":
@@ -447,6 +447,11 @@ if __name__ == "__main__":
 
 ## Тесты:
 
+##Если не существует файла по указанному пути, всплывает ошибка:
+<img width="1343" height="60" alt="файл не существует" src="https://github.com/user-attachments/assets/301baa75-033d-4e80-996f-65db5e2ab9c6" />
+
+
+
 ## A (Обычный файл):
 
 ## Входные данные:
@@ -456,8 +461,8 @@ if __name__ == "__main__":
 ## Результат:
 <img width="401" height="189" alt="Задание A(результат)" src="https://github.com/user-attachments/assets/36c8588a-e7a0-4a79-8f8c-2131373ed43f" />
 
-## B (Пустой файл):
-
+## B (Пустой файл), выводится:
+## B (Пустой файл), word,count:
 ## Результат:
 <img width="609" height="196" alt="Задание B(результат)" src="https://github.com/user-attachments/assets/0da6f54d-2672-4f4d-99cb-34cb273a6e00" />
 
@@ -471,6 +476,166 @@ if __name__ == "__main__":
 
 ## Результат:
 <img width="669" height="293" alt="Задание C(результат)" src="https://github.com/user-attachments/assets/20a0248e-8b66-4280-b2ab-20594835ee33" />
+
+
+# Лабораторная работа №5 по Python
+
+## Задание A — JSON ↔ CSV
+
+# функция json_to_csv
+
+```
+Преобразует JSON-файл в CSV.
+Поддерживает список словарей [{...}, {...}], заполняет отсутствующие поля пустыми строками.
+Кодировка UTF-8. Порядок колонок — как в первом объекте.
+```
+```python
+
+def json_to_csv(json_path, csv_path):
+    json_path = Path(json_path)
+    csv_path = Path(csv_path)
+
+    if json_path.suffix.lower() != ".json":
+        raise ValueError("Неверный тип входного файла: нужен .json")
+
+    if csv_path.suffix.lower() != ".csv":
+        raise ValueError("Неверный тип выходного файла: нужен .csv")
+
+    if not json_path.exists():
+        raise FileNotFoundError(f"Файл не найден: {json_path}")
+
+    with json_path.open(encoding="utf-8") as f:
+        data = json.load(f)
+
+    if not isinstance(data, list) or not data:
+        raise ValueError("Пустой JSON или неподдерживаемая структура")
+
+    if not all(isinstance(item, dict) for item in data):
+        raise ValueError("JSON должен содержать список объектов")
+
+    fieldnames = list(data[0].keys())
+    for item in data:
+        row = {key: item.get(key, "") for key in fieldnames}
+    with csv_path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(data)
+```
+
+# функция csv_to_json
+
+```
+    Преобразует CSV в JSON (список словарей).
+    Заголовок обязателен, значения сохраняются как строки.
+    json.dump(..., ensure_ascii=False, indent=2)
+    
+```
+```python
+def csv_to_json(csv_path, json_path):
+    csv_path = Path(csv_path)
+    json_path = Path(json_path)
+
+    if csv_path.suffix.lower() != ".csv":
+        raise ValueError("Ожидается CSV-файл на входе")
+    if json_path.suffix.lower() != ".json":
+        raise ValueError("Ожидается JSON-файл на выходе")
+
+    if not csv_path.exists():
+        raise FileNotFoundError(f"Файл не найден: {csv_path}")
+
+    with csv_path.open(encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        rows = list(reader)
+
+    if not rows:
+        raise ValueError("CSV пустой или без заголовка")
+
+    with json_path.open("w", encoding="utf-8") as f:
+        json.dump(rows, f, ensure_ascii=False, indent=2)
+```
+
+## Задание B —  CSV → XLSX
+
+```
+    используется openpyxl
+    Конвертирует CSV в XLSX.
+    Первая строка CSV — заголовок.
+    Лист называется "Sheet1".
+    Колонки — автоширина по длине текста (не менее 8 символов).
+    
+```
+
+```python
+def csv_to_xlsx(csv_path, xlsx_path):
+    csv_path = Path(csv_path)
+    xlsx_path = Path(xlsx_path)
+
+    if csv_path.suffix.lower() != ".csv":
+        raise ValueError("Ожидается CSV-файл на входе")
+    if xlsx_path.suffix.lower() != ".xlsx":
+        raise ValueError("Ожидается XLSX-файл на выходе")
+
+    if not csv_path.exists():
+        raise FileNotFoundError(f"Файл не найден: {csv_path}")
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Sheet1"
+
+    widths = {}
+
+    with csv_path.open(encoding="utf-8") as f:
+        reader = csv.reader(f)
+
+        for row in reader:
+            ws.append(row)
+
+            for i, cell in enumerate(row):
+                length = len(str(cell))
+                widths[i] = max(widths.get(i, 8), length)
+
+    for i, w in widths.items():
+        col_letter = ws.cell(row=1, column=i+1).column_letter
+        ws.column_dimensions[col_letter].width = w + 2
+
+    wb.save(xlsx_path)
+```
+## Тесты (из data/samples)
+
+#Файл запускающий тестирование:
+
+```python
+if __name__ == "__main__":
+    from src.lab05.csv_xlsx import csv_to_xlsx
+    from src.lab05.json_csv import json_to_csv, csv_to_json
+    from pathlib import Path
+
+    BASE = Path(__file__).resolve().parents[2]
+
+    INPUT_JSON = BASE / "data" / "samples" / "people.json"
+    OUTPUT_CSV = BASE / "data" / "out" / "people_from_json.csv"
+
+    INPUT_CSV = BASE / "data"  / "samples" / "people.csv"
+    OUTPUT_JSON = BASE / "data"  / "out" / "people_from_csv.json"
+
+    INPUT_CSV_2 = BASE / "data"  / "samples" / "cities.csv"
+    OUTPUT_XLSX = BASE / "data"  / "out" / "people.xlsx"
+
+    json_to_csv(INPUT_JSON, OUTPUT_CSV)
+    csv_to_json(INPUT_CSV, OUTPUT_JSON)
+    csv_to_xlsx(INPUT_CSV_2, OUTPUT_XLSX)
+```
+
+# конвертация json в csv:
+<img width="366" height="223" alt="image" src="https://github.com/user-attachments/assets/1dc2c765-53cd-4280-adb1-c67b5305c571" />
+
+# конвертация csv в json:
+<img width="507" height="819" alt="image" src="https://github.com/user-attachments/assets/c3f79b73-b0e2-4d16-a5de-a022430c3251" />
+
+# конвертация csv в xlsx:
+<img width="445" height="267" alt="image" src="https://github.com/user-attachments/assets/945e1d02-184e-46b6-83fe-ae8be769b790" />
+
+
 
 
 
