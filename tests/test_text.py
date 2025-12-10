@@ -1,62 +1,71 @@
 import pytest
-from src.lib.text import normalize
+from src.lib.text import normalize, tokenize, count_freq, top_n
 
 
 @pytest.mark.parametrize(
-    "source_normalize, expected_normalize",
+    "text, expected",
     [
-        ("ПрИвЕт\\nМИр\\t", "привет мир"),
+        ("ПрИвЕт\nМиР\t", "привет мир"),
         ("ёжик, Ёлка", "ежик, елка"),
-        ("Hello\\r\\nWorld", "hello world"),
+        ("Hello\nWorld", "hello world"),
         ("  двойные   пробелы  ", "двойные пробелы"),
         ("", ""),
     ],
 )
+def test_normalize_basic(text, expected):
+    assert normalize(text) == expected
+
+
 @pytest.mark.parametrize(
-    "source_tokenize, expected_tokenize",
+    "text, expected_tokens",
     [
-        ("ПрИвЕт\\nМИр\\t", "привет мир"),
-        ("ёжик, Ёлка", "ежик, елка"),
-        ("Hello\\r\\nWorld", "hello world"),
-        ("  двойные   пробелы  ", "двойные пробелы"),
-        ("", ""),
+        ("привет мир", ["привет", "мир"]),
+        ("hello,world!!!", ["hello", "world"]),
+        ("по-настоящему круто", ["по-настоящему", "круто"]),
+        ("2025 год", ["2025", "год"]),
+        ("emoji 😃 не слово", ["emoji", "не", "слово"]),
+        ("", []),
+        ("!!! ??? ###", []),
     ],
 )
+def test_tokenize_basic(text, expected_tokens):
+    assert tokenize(text) == expected_tokens
+
+
 @pytest.mark.parametrize(
-    "source, expected",
+    "tokens, expected_freq",
     [
-        ("ПрИвЕт\\nМИр\\t", "привет мир"),
-        ("ёжик, Ёлка", "ежик, елка"),
-        ("Hello\\r\\nWorld", "hello world"),
-        ("  двойные   пробелы  ", "двойные пробелы"),
-        ("", ""),
+        (
+            ["a", "b", "a", "c", "b", "a"],
+            {"a": 3, "b": 2, "c": 1},
+        ),
+        (
+            ["bb", "aa", "bb", "aa", "cc"],
+            {"bb": 2, "aa": 2, "cc": 1},
+        ),
+        (["a", "a", "a"], {"a": 3}),
+        (["b", "a"], {"b": 1, "a": 1}),
     ],
 )
+def test_count_freq_basic(tokens, expected_freq):
+    assert count_freq(tokens) == expected_freq
+
+
 @pytest.mark.parametrize(
-    "source, expected",
+    "freq, n, expected_top",
     [
-        ("ПрИвЕт\\nМИр\\t", "привет мир"),
-        ("ёжик, Ёлка", "ежик, елка"),
-        ("Hello\\r\\nWorld", "hello world"),
-        ("  двойные   пробелы  ", "двойные пробелы"),
-        ("", ""),
+        (
+            {"a": 3, "b": 2, "c": 1},
+            2,
+            [("a", 3), ("b", 2)],
+        ),
+        (
+            {"bb": 2, "aa": 2, "cc": 1},
+            2,
+            [("aa", 2), ("bb", 2)],
+        ),
+        ({"b": 2, "a": 2, "c": 1}, 2, [("a", 2), ("b", 2)]),
     ],
 )
-def test_normalize_basic(source_normalize, expected_normalize):
-    assert normalize(source_normalize) == expected_normalize
-    pass
-
-
-def test_tokenize_basic(source, expected):
-    # TODO: Реализовать тесты токенизации
-    pass
-
-
-def test_count_freq_and_top_n():
-    # TODO: Реализовать тесты частоты
-    pass
-
-
-def test_top_n_tie_breaker():
-    # TODO: Реализовать тесты для топ_н
-    pass
+def test_top_n_basic(freq, n, expected_top):
+    assert top_n(freq, n) == expected_top
