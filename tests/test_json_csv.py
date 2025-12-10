@@ -106,8 +106,8 @@ def test_csv_to_json_basic(tmp_path, rows):
 @pytest.mark.parametrize(
     "content",
     [
-        "",  # пустой файл
-        "a,b,c",  # только заголовок
+        "",
+        "a,b,c",
     ],
 )
 def test_csv_to_json_invalid_csv(tmp_path, content):
