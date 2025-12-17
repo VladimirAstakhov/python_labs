@@ -1,4 +1,4 @@
-# Лабораторная работа №1 по Python
+# Лабораторная работа №8 по Python
 
 ## ООП в Python: @dataclass Student, методы и сериализация
 
@@ -141,6 +141,7 @@ def students_from_json(path: str | Path) -> list[Student]:
 ## тест  age:
 
 <img width="812" height="230" alt="проверка age" src="https://github.com/user-attachments/assets/1d4ea603-644a-4a11-a897-f9bf9eb5540f" />
+
 
 
 
