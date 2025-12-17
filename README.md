@@ -602,7 +602,7 @@ def csv_to_xlsx(csv_path, xlsx_path):
 ```
 ## Тесты (из data/samples)
 
-#Файл запускающий тестирование:
+# Файл запускающий тестирование:
 
 ```python
 if __name__ == "__main__":
