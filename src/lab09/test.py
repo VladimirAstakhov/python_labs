@@ -7,12 +7,10 @@ def main():
     project_root = Path(__file__).resolve().parents[2]
     csv_path = project_root / "data" / "lab09" / "students.csv"
 
-
     group = Group(csv_path)
     print("test read_all:")
     for element in group._read_all():
         print(element)
-
 
     print("test list:")
     for element in group.list():
@@ -20,10 +18,7 @@ def main():
 
     print("\ntest add:")
     new_student = Student(
-        fio="Тест Тестов",
-        birthdate="2025-01-01",
-        group="БИВТ-25-2",
-        gpa=5.0
+        fio="Тест Тестов", birthdate="2025-01-01", group="БИВТ-25-2", gpa=5.0
     )
     group.add(new_student)
 
@@ -46,7 +41,6 @@ def main():
 
     for element in group.list():
         print(element)
-
 
 
 if __name__ == "__main__":
