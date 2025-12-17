@@ -721,5 +721,719 @@ python -m src.lab06.cli_text --help
 python -m src.lab06.cli_convert --help
 ```
 
+# Лабораторная работа №7 по Python
+
+##  Тестирование: pytest + стиль (black)
+
+## Тест normalize
+
+```python
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ("ПрИвЕт\nМиР\t", "привет мир"),
+        ("ёжик, Ёлка", "ежик, елка"),
+        ("Hello\nWorld", "hello world"),
+        ("  двойные   пробелы  ", "двойные пробелы"),
+        ("", ""),
+    ],
+)
+def test_normalize_basic(text, expected):
+    assert normalize(text) == expected
+```
+
+
+## Тест tokenize
+
+```python
+@pytest.mark.parametrize(
+    "text, expected_tokens",
+    [
+        ("привет мир", ["привет", "мир"]),
+        ("hello,world!!!", ["hello", "world"]),
+        ("по-настоящему круто", ["по-настоящему", "круто"]),
+        ("2025 год", ["2025", "год"]),
+        ("emoji 😃 не слово", ["emoji", "не", "слово"]),
+        ("", []),
+        ("!!! ??? ###", []),
+    ],
+)
+def test_tokenize_basic(text, expected_tokens):
+    assert tokenize(text) == expected_tokens
+```
+
+
+## Тест count_freq
+
+```python
+@pytest.mark.parametrize(
+    "tokens, expected_freq",
+    [
+        (
+            ["a", "b", "a", "c", "b", "a"],
+            {"a": 3, "b": 2, "c": 1},
+        ),
+        (
+            ["bb", "aa", "bb", "aa", "cc"],
+            {"bb": 2, "aa": 2, "cc": 1},
+        ),
+        (["a", "a", "a"], {"a": 3}),
+        (["b", "a"], {"b": 1, "a": 1}),
+    ],
+)
+def test_count_freq_basic(tokens, expected_freq):
+    assert count_freq(tokens) == expected_freq
+```
+
+
+## Тест top_n
+
+```python
+@pytest.mark.parametrize(
+    "freq, n, expected_top",
+    [
+        (
+            {"a": 3, "b": 2, "c": 1},
+            2,
+            [("a", 3), ("b", 2)],
+        ),
+        (
+            {"bb": 2, "aa": 2, "cc": 1},
+            2,
+            [("aa", 2), ("bb", 2)],
+        ),
+        ({"b": 2, "a": 2, "c": 1}, 2, [("a", 2), ("b", 2)]),
+    ],
+)
+def test_top_n_basic(freq, n, expected_top):
+    assert top_n(freq, n) == expected_top
+```
+## Работа тестов:
+
+<img width="1409" height="825" alt="тесты функций обработки текста" src="https://github.com/user-attachments/assets/de732ff5-8d99-479b-911e-1765e8f5fad0" />
+
+
+## Тест json_to_csv ( Обычные файлы)
+
+```python
+@pytest.mark.parametrize(
+    "data",
+    [
+        [
+            {"name": "Alice", "age": 22},
+            {"name": "Bob", "age": 25},
+        ],
+        [
+            {"city": "Moscow", "year": 2024},
+            {"city": "London", "year": 2025},
+        ],
+    ],
+)
+def test_json_to_csv_basic(tmp_path, data):
+    src = tmp_path / "input.json"
+    dst = tmp_path / "output.csv"
+
+    src.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+    json_to_csv(src, dst)
+
+    with dst.open(encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+
+    assert len(rows) == len(data)
+    assert set(rows[0].keys()) == set(data[0].keys())
+
+```
+
+
+
+## Тест json_to_csv (файлы с неправильным содержанием)
+
+```python
+@pytest.mark.parametrize(
+    "content",
+    [
+        "",
+        "{}",
+        "[]",
+        "[1, 2, 3]",
+    ],
+)
+def test_json_to_csv_invalid_json(tmp_path, content):
+    src = tmp_path / "bad.json"
+    dst = tmp_path / "out.csv"
+
+    src.write_text(content, encoding="utf-8")
+
+    with pytest.raises(ValueError):
+        json_to_csv(src, dst)
+```
+
+
+## Тест json_to_csv (с ошибками в пути файла/ неправильный тип файла)
+
+```python
+@pytest.mark.parametrize(
+    "src_name, dst_name, error",
+    [
+        ("data.txt", "out.csv", ValueError),
+        ("data.json", "out.txt", ValueError),
+        ("missing.json", "out.csv", FileNotFoundError),
+    ],
+)
+def test_json_to_csv_path_errors(tmp_path, src_name, dst_name, error):
+    src = tmp_path / src_name
+    dst = tmp_path / dst_name
+
+    if src_name != "missing.json":
+        src.write_text("[]", encoding="utf-8")
+
+    with pytest.raises(error):
+        json_to_csv(src, dst)
+```
+
+## Тест csv_to_json ( Обычные файлы)
+
+```python
+@pytest.mark.parametrize(
+    "rows",
+    [
+        [
+            {"name": "Alice", "age": "22"},
+            {"name": "Bob", "age": "25"},
+        ],
+        [
+            {"city": "Paris", "year": "2023"},
+            {"city": "Berlin", "year": "2024"},
+        ],
+    ],
+)
+def test_csv_to_json_basic(tmp_path, rows):
+    src = tmp_path / "input.csv"
+    dst = tmp_path / "output.json"
+
+    with src.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=rows[0].keys())
+        writer.writeheader()
+        writer.writerows(rows)
+
+    csv_to_json(src, dst)
+
+    data = json.loads(dst.read_text(encoding="utf-8"))
+
+    assert data == rows
+```
+
+
+
+## Тест csv_to_json (файлы с неправильным содержанием)
+
+```python
+@pytest.mark.parametrize(
+    "content",
+    [
+        "",
+        "a,b,c",
+    ],
+)
+def test_csv_to_json_invalid_csv(tmp_path, content):
+    src = tmp_path / "bad.csv"
+    dst = tmp_path / "out.json"
+
+    src.write_text(content, encoding="utf-8")
+
+    with pytest.raises(ValueError):
+        csv_to_json(src, dst)
+```
+
+
+## Тест csv_to_json (с ошибками в пути файла/ неправильный тип файла)
+
+```python
+@pytest.mark.parametrize(
+    "src_name, dst_name, error",
+    [
+        ("data.txt", "out.json", ValueError),
+        ("data.csv", "out.txt", ValueError),
+        ("missing.csv", "out.json", FileNotFoundError),
+    ],
+)
+def test_csv_to_json_path_errors(tmp_path, src_name, dst_name, error):
+    src = tmp_path / src_name
+    dst = tmp_path / dst_name
+
+    if src_name != "missing.csv":
+        src.write_text("a,b\n1,2", encoding="utf-8")
+
+    with pytest.raises(error):
+        csv_to_json(src, dst)
+```
+
+## Работа тестов:
+
+<img width="1408" height="768" alt="тесты json_csv" src="https://github.com/user-attachments/assets/963f82e9-0a22-47df-97ce-b3e3d286b50a" />
+
+##  Форматирование black:
+
+<img width="683" height="122" alt="форматирование black" src="https://github.com/user-attachments/assets/bfd5529f-b216-448a-b5c7-dcde2dc368dd" />
+
+
+
+
+
 <img width="1061" height="397" alt="image" src="https://github.com/user-attachments/assets/44079af8-bc33-4ad6-8f1a-a36000d169d2" />
+
+
+# Лабораторная работа №8 по Python
+
+## ООП в Python: @dataclass Student, методы и сериализация
+
+## Задание A - class Students
+
+```python
+from dataclasses import dataclass
+from datetime import datetime
+
+
+@dataclass
+class Student:
+    fio: str
+    birthdate: str
+    group: str
+    gpa: float
+
+    def __post_init__(self):
+        try:
+            datetime.strptime(self.birthdate, "%Y-%m-%d")
+        except ValueError:
+            raise ValueError("Неверный формат даты рождения")
+
+        if not (0 <= self.gpa <= 5):
+            raise ValueError("gpa должно быть от 0 до 5")
+
+    def age(self) -> int:
+        student_birthdate = datetime.strptime(self.birthdate, "%Y-%m-%d").date()
+        now_date = datetime.today()
+        age = now_date.year - student_birthdate.year
+        if now_date.month < student_birthdate.month:
+            age -= 1
+        elif (
+            now_date.month == student_birthdate.month
+            and now_date.day < student_birthdate.day
+        ):
+            age -= 1
+        return age
+
+    def to_dict(self) -> dict:
+        return {
+            "fio": self.fio,
+            "birthdate": self.birthdate,
+            "group": self.group,
+            "gpa": self.gpa,
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict):
+        student = Student(
+            fio=d["fio"], birthdate=d["birthdate"], group=d["group"], gpa=d["gpa"]
+        )
+
+        return student
+
+    def __str__(self):
+        return f"{self.fio}, {self.birthdate}, {self.group}, {self.gpa}"
+```
+
+```
+Класс Student
+
+A) Класс представляет информацию о студенте и включает поля:
+
+1) fio — ФИО студента
+
+2) birthdate — дата рождения в формате YYYY-MM-DD
+
+3) group — учебная группа
+
+4) gpa — средний балл (от 0 до 5)
+
+
+B) При создании объекта выполняется проверка:
+
+1) корректности формата даты рождения
+
+2) допустимости значения GPA
+
+
+C) Методы:
+
+1) age() — вычисляет текущий возраст студента
+
+2) to_dict() — возвращает данные студента в виде словаря
+
+3) from_dict() — создаёт объект Student из словаря
+
+4) __str__() — строковое представление студента
+```
+
+## Задание B - serialize.py
+
+```python
+import json
+from .models import Student
+from pathlib import Path
+
+
+def students_to_json(students: list[Student], path: str | Path):
+    data = [s.to_dict() for s in students]
+    path = Path(path)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def students_from_json(path: str | Path) -> list[Student]:
+    path = Path(path)
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    if not isinstance(data, list):
+        raise ValueError("В JSON должен лежать список студентов")
+    students = []
+    for item in data:
+        if not isinstance(item, dict):
+            raise ValueError("Информация о студенте должна храниться как словарь")
+        student = Student.from_dict(item)
+        students.append(student)
+    return students
+
+```
+
+## students_input.json (входные данные):
+
+<img width="809" height="943" alt="students_input json" src="https://github.com/user-attachments/assets/7e0e0522-46d1-4b51-9dc3-40e47464c205" />
+
+## students_input.json (выходные данные после сериализации):
+
+<img width="704" height="905" alt="students_output json" src="https://github.com/user-attachments/assets/260988ac-8588-4fbd-90c3-a13c6e906461" />
+
+
+## тест  __post_init__:
+
+``` 
+У одного из студентов был введен gpa = 10, в students_input.json
+```
+<img width="1049" height="112" alt="проверка __post_init__" src="https://github.com/user-attachments/assets/28f0bc64-555d-45a2-8690-391017555115" />
+
+
+## тест  age:
+
+<img width="812" height="230" alt="проверка age" src="https://github.com/user-attachments/assets/1d4ea603-644a-4a11-a897-f9bf9eb5540f" />
+
+
+
+
+
+# Лабораторная работа №10 по Python
+
+## Структуры данных: Stack, Queue, Linked List и бенчмарки
+
+## Краткая теоритическая справка
+## Stack
+```
+Стек — линейная структура данных, работающая по принципу LIFO
+(последний добавленный элемент извлекается первым).
+
+Операции:
+push — O(1)
+pop — O(1)
+peek — O(1)
+```
+## Queue
+```
+Очередь — линейная структура данных, работающая по принципу FIFO
+(первый добавленный элемент извлекается первым).
+
+Операции (на базе deque):
+enqueue — O(1)
+dequeue — O(1)
+peek — O(1)
+
+```
+## Node
+```
+Node — элемент связного списка, содержащий значение и ссылку
+на следующий узел.
+
+Доступ к значению — O(1)
+Переход к следующему узлу — O(1)
+
+```
+## Linked list
+```
+Односвязный список — структура данных, состоящая из узлов,
+связанных ссылками.
+
+Операции:
+append — O(1)
+prepend — O(1)
+insert — O(n)
+доступ по индексу — O(n)
+
+```
+
+## Задание A - Stack, Queue
+
+## Код в structures.py
+
+```
+При попытке вернуть/удалить элемент из пустой структуры возращается None
+```
+
+```python
+from collections import deque
+class Stack:
+    def __init__(self):
+        self._data = []
+
+    def push(self, item):
+        self._data.append(item)
+
+    def pop(self):
+        if self.is_empty():
+            return None
+        return self._data.pop()
+
+    def peek(self):
+        if self.is_empty():
+            return None
+        return self._data[-1]
+
+    def is_empty(self) -> bool:
+
+        if not self._data:
+            return True
+        return False
+
+class Queue:
+    def __init__(self):
+
+        self._data = deque()
+
+    def enqueue(self, item):
+        self._data.append(item)
+
+    def dequeue(self):
+        if not self._data:
+            return None
+        return self._data.popleft()
+
+    def peek(self):
+        if not self._data:
+            return None
+        return self._data[0]
+
+    def is_empty(self) -> bool:
+        return not self._data
+```
+
+
+
+## Задание B - Linked List
+
+```
+В Node добавлено поле tail (последний элемент)
+```
+
+
+```python
+class Node:
+    def __init__(self, value, next=None):
+        self.value = value
+        self.next = next
+
+
+class SinglyLinkedList:
+    def __init__(self):
+        self.head = None
+        self._size = 0
+        self.tail = None
+
+    def append(self, value):
+        """Добавить элемент в конец списка"""
+        new_node = Node(value)
+        if self.head is None:
+            self.head = new_node
+            self._size += 1
+            if self.tail is None:
+                self.tail = new_node
+            return
+
+        self.tail.next = new_node
+        self.tail = new_node
+        self._size += 1
+
+    def prepend(self, value):
+        new_node = Node(value, next=self.head)
+        self.head = new_node
+        if self.tail is None:
+            self.tail = new_node
+        self._size += 1
+
+    def insert(self, idx, value):
+        if idx < 0 or idx > self._size:
+            raise IndexError("index out of range")
+
+        if idx == 0:
+            self.prepend(value)
+            return
+
+        if idx == self._size:
+            self.append(value)
+            return
+
+        current = self.head
+        for _ in range(idx - 1):
+            current = current.next
+
+        new_node = Node(value, next=current.next)
+        current.next = new_node
+        self._size += 1
+
+    def __iter__(self):
+        current = self.head
+        while current is not None:
+            yield current.value
+            current = current.next
+
+    def __len__(self):
+
+        return self._size
+
+    def __repr__(self):
+        values = list(self)
+        return f"SinglyLinkedList({values})"
+
+```
+
+## Простые тесты работы структур
+
+## Код в src/lab10/test.py
+
+```python
+from src.lab10.structures import Stack, Queue
+from src.lab10.linked_list import SinglyLinkedList, Node
+
+
+print("Стек")
+stack = Stack()
+for i in range(10):
+    stack.push(i)
+
+while not stack.is_empty():
+    print("peek =", stack.peek(), "pop =", stack.pop())
+
+print("Очередь")
+
+queue = Queue()
+for i in range(10):
+    queue.enqueue(i)
+
+while not queue.is_empty():
+    print("peek =", queue.peek(), "dequeue =", queue.dequeue())
+
+print("Односвязный список")
+
+lst = SinglyLinkedList()
+
+# append
+for i in range(3):
+    lst.append(i)
+print("after append:", list(lst))
+
+# prepend
+lst.prepend(-1)
+print("after prepend:", list(lst))
+
+# insert
+lst.insert(2, 99)
+print("after insert:", list(lst))
+
+# insert at edges
+lst.insert(0, -2)
+lst.insert(len(lst), 3)
+print("after edge inserts:", list(lst))
+
+# checks
+print("size:", len(lst))
+print("head:", lst.head.value)
+print("tail:", lst.tail.value)
+
+
+```
+<img width="691" height="890" alt="test" src="https://github.com/user-attachments/assets/394e2931-a371-40ea-93be-0bb9b9d76cb7" />
+
+
+
+## Benchmark
+
+## Код в src/lab10/benchmark.py 
+
+```python
+import time
+from src.lab10.structures import Stack, Queue
+from src.lab10.linked_list import SinglyLinkedList, Node
+import random
+N = 10000
+
+# Stack
+start = time.perf_counter()
+s = Stack()
+for i in range(N):
+    s.push(i)
+for i in range(N):
+    s.pop()
+print("Stack:", time.perf_counter() - start)
+
+# Queue
+start = time.perf_counter()
+q = Queue()
+for i in range(N):
+    q.enqueue(i)
+for i in range(N):
+    q.dequeue()
+print("Queue:", time.perf_counter() - start)
+
+# Linked list append
+start = time.perf_counter()
+lst = SinglyLinkedList()
+for i in range(N):
+    lst.append(i)
+print("LinkedList append:", time.perf_counter() - start)
+
+# Linked list insert
+start = time.perf_counter()
+lst = SinglyLinkedList()
+for i in range(N):
+    lst.insert(i//2,i)
+print("LinkedList insert:", time.perf_counter() - start)
+
+
+```
+<img width="461" height="199" alt="benchmark" src="https://github.com/user-attachments/assets/e9a8d274-bf6b-4e4f-b678-bc444ea7f422" />
+
+
+```
+Есть смысл сравнивать append в linked list и аналогичные операции в stack и queue.
+Мы видим, что в stack и queue эти операции работают быстрее, тк:
+1) узлы односвязного списка хранятся в памяти разрозненно, что увеличивает время
+2) list и deque (на которых реализованы stack и queue) реализованы на C, что увеличивает оптимизацию
+
+Операция insert в linked list работает сильно дольше из-за асимптоики O(n)
+```
+
+
+
+
 
